@@ -1,3 +1,0 @@
-# API KEY file
-
-API_KEY = "78d841b9ea3c40de9fd1607901d31c88"
