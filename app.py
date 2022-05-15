@@ -2,7 +2,7 @@ import PySimpleGUI as sg
 import requests
 import config
 
-testing = True
+testing = False
 
 cuisines = [
     "African",
@@ -47,17 +47,37 @@ diets = [
     "Whole30"
 ]
 
+intolerances = [
+    "Dairy",
+    "Egg",
+    "Gluten",
+    "Grain",
+    "Peanut",
+    "Seafood",
+    "Sesame",
+    "Shellfish",
+    "Soy",
+    "Sulfite",
+    "Tree Nut",
+    "Wheat"
+]
+
 cuisine_frame = [
     # [sg.Text("Search for a recipe by cuisine:", background_color="#57ADA9")],
-    [sg.DropDown(default_value="Select Cuisine", values=cuisines, key="cuisine")],
+    [sg.DropDown(default_value="Select Cuisine", values=cuisines, key="cuisine", size=22)],
     # [sg.Text("How many recipes do you want to see?")],
     # [sg.DropDown(default_value="", values=[x for x in range(1, 4)])],
     [sg.Button("Get Recipe", key="recipe")]
 ]
 
 diet_frame = [
-    [sg.DropDown(default_value="Select Diet", values=diets, key="diet")],
+    [sg.DropDown(default_value="Select Diet", values=diets, key="diet", size=22)],
     [sg.Button("Get Recipe", key="diet_recipe")]
+]
+
+intolerance_frame = [
+    [sg.DropDown(default_value="Select Intolerance", values=intolerances, key="intolerances", size=22)],
+    [sg.Button("Get Recipe", key="int_recipe")]
 ]
 
 layout = [
@@ -78,6 +98,13 @@ layout = [
               expand_x=True,
               element_justification="center",
               font="Any 14 bold"
+              )],
+    [sg.Frame("Search for a recipe by Intolerance:",
+              intolerance_frame,
+              background_color="#57ADA9",
+              expand_x=True,
+              element_justification="center",
+              font="Any 14 bold"
               )]
 ]
 
@@ -87,37 +114,51 @@ layout = [
 window = sg.Window("Scrumptious Rex", layout, size=(350, 600), resizable=False, background_color="#57ADA9")
 
 
-def recipe_window(cuisine_selected, presses):
+def recipe_window(arg, presses):
     if not testing:
-        response = requests.get(f'https://api.spoonacular.com/recipes/complexSearch?apiKey={config.API_KEY}'
-                            f'&cuisine={cuisine_selected}&number=1&addRecipeInformation=true&instructionsRequired=true'
-                            f'&offset={presses}')
+        if arg in cuisines:
+            response = requests.get(f'https://api.spoonacular.com/recipes/complexSearch?apiKey={config.API_KEY}'
+                                    f'&cuisine={arg}&number=1&addRecipeInformation=true&instructionsRequired=true'
+                                    f'&offset={presses}')
+        if arg in diets:
+            response = requests.get(f'https://api.spoonacular.com/recipes/complexSearch?apiKey={config.API_KEY}'
+                                    f'&diet={arg}&number=1&addRecipeInformation=true&instructionsRequired=true'
+                                    f'&offset={presses}')
+        if arg in intolerances:
+            response = requests.get(f'https://api.spoonacular.com/recipes/complexSearch?apiKey={config.API_KEY}'
+                                    f'&intolerances={arg}&number=1&addRecipeInformation=true&instructionsRequired=true'
+                                    f'&offset={presses}')
 
     result = response.json()
     print(result)
 
     instructions = "Recipe Instructions: \n\n"
-    for i in range(len(result["results"][0]["analyzedInstructions"][0]["steps"])):
-        instructions += "Step "
-        instructions += str(result["results"][0]["analyzedInstructions"][0]["steps"][i]["number"])
-        instructions += ": "
-        instructions += result["results"][0]["analyzedInstructions"][0]["steps"][i]["step"]
-        instructions += "\n"
-
-    # print(instructions)
-
     ingredients = "Ingredients Needed: \n\n"
-    for i in range(len(result["results"][0]["analyzedInstructions"][0]["steps"])):
-        for x in range(len(result["results"][0]["analyzedInstructions"][0]["steps"][i]["ingredients"])):
-            ingredients += result["results"][0]["analyzedInstructions"][0]["steps"][i]["ingredients"][x]["name"]
-            ingredients += "\n"
+
+    if not result["results"][0]["analyzedInstructions"]:
+        instructions += "No instructions available for this recipe."
+        ingredients += "No ingredient list available for this recipe."
+    else:
+        for i in range(len(result["results"][0]["analyzedInstructions"][0]["steps"])):
+            instructions += "Step "
+            instructions += str(result["results"][0]["analyzedInstructions"][0]["steps"][i]["number"])
+            instructions += ": "
+            instructions += result["results"][0]["analyzedInstructions"][0]["steps"][i]["step"]
+            instructions += "\n"
+
+            # print(instructions)
+
+            for i in range(len(result["results"][0]["analyzedInstructions"][0]["steps"])):
+                for x in range(len(result["results"][0]["analyzedInstructions"][0]["steps"][i]["ingredients"])):
+                    ingredients += result["results"][0]["analyzedInstructions"][0]["steps"][i]["ingredients"][x]["name"]
+                    ingredients += "\n"
 
     title = result["results"][0]["title"]
 
     rec_layout = [
         [sg.Multiline(ingredients, size=(50, 18), expand_x=True, disabled=True)],
         [sg.Multiline(instructions, size=(50, 18), expand_x=True, disabled=True)],
-        [sg.Button(f"View another {cuisine_selected} recipe", key="another")]
+        [sg.Button(f"View another recipe", key="another")]
     ]
     rec_window = sg.Window(f"{title}", rec_layout, size=(500, 500), background_color="#57ADA9")
     while True:
@@ -128,7 +169,7 @@ def recipe_window(cuisine_selected, presses):
             # cuisine_selected = values["cuisine"]
             rec_window.close()
             presses += 1
-            recipe_window(cuisine_selected, presses)
+            recipe_window(arg, presses)
 
     rec_window.close()
 
@@ -172,6 +213,14 @@ def main():
         if event == "recipe":
             cuisine_selected = values["cuisine"]
             recipe_window(cuisine_selected, presses)
+            presses += 1
+        if event == "diet_recipe":
+            diet_selected = values["diet"]
+            recipe_window(diet_selected, presses)
+            presses += 1
+        if event == "int_recipe":
+            int_selected = values["intolerances"]
+            recipe_window(int_selected, presses)
             presses += 1
 
     window.close()

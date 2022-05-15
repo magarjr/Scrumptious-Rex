@@ -156,19 +156,49 @@ result = {
 
 # print(result["results"][0]["analyzedInstructions"][0]["steps"][0])
 
+# print("Ingredients Needed: ")
+# for i in range(len(result["results"][0]["analyzedInstructions"][0]["steps"])):
+#     for x in range(len(result["results"][0]["analyzedInstructions"][0]["steps"][i]["ingredients"])):
+#         print(result["results"][0]["analyzedInstructions"][0]["steps"][i]["ingredients"][x]["name"])
+#
+# print("\nRecipe Instructions: ")
+# for i in range(len(result["results"][0]["analyzedInstructions"][0]["steps"])):
+#     # print(result["results"][0]["analyzedInstructions"][0]["steps"][i]["number"])
+#     # print(result["results"][0]["analyzedInstructions"][0]["steps"][i]["step"])
+#     print("Step " +
+#           str(result["results"][0]["analyzedInstructions"][0]["steps"][i]["number"]),
+#           ": " +
+#           result["results"][0]["analyzedInstructions"][0]["steps"][i]["step"]
+#           )
+
+
+# ####################### THIS IS THE RANDOM QUERY # #######################
+
+response = requests.get(f'https://api.spoonacular.com/recipes/random?apiKey={API_KEY}&number=1&tags=thai'
+                        f'&instructionsRequired=true')
+
+result2 = response.json()
+
+print(result2)
+instructions = ""
+
+print("\nTitle: " + result2["recipes"][0]["title"] + "\n")
+
+print("Instructions: ")  # + str(result2["recipes"][0]["analyzedInstructions"]))
+for i in range(len(result2["recipes"][0]["analyzedInstructions"][0]["steps"])):
+    instructions += "Step "
+    instructions += str(result2["recipes"][0]["analyzedInstructions"][0]["steps"][i]["number"])
+    instructions += ": "
+    instructions += result2["recipes"][0]["analyzedInstructions"][0]["steps"][i]["step"]
+    instructions += "\n"
+
+print(instructions)
+
+ingredients = ""
 print("Ingredients Needed: ")
-for i in range(len(result["results"][0]["analyzedInstructions"][0]["steps"])):
-    for x in range(len(result["results"][0]["analyzedInstructions"][0]["steps"][i]["ingredients"])):
-        print(result["results"][0]["analyzedInstructions"][0]["steps"][i]["ingredients"][x]["name"])
+for i in range(len(result2["recipes"][0]["analyzedInstructions"][0]["steps"])):
+    for x in range(len(result2["recipes"][0]["analyzedInstructions"][0]["steps"][i]["ingredients"])):
+        ingredients += result2["recipes"][0]["analyzedInstructions"][0]["steps"][i]["ingredients"][x]["name"]
+        ingredients += "\n"
 
-print("\nRecipe Instructions: ")
-for i in range(len(result["results"][0]["analyzedInstructions"][0]["steps"])):
-    # print(result["results"][0]["analyzedInstructions"][0]["steps"][i]["number"])
-    # print(result["results"][0]["analyzedInstructions"][0]["steps"][i]["step"])
-    print("Step " +
-          str(result["results"][0]["analyzedInstructions"][0]["steps"][i]["number"]),
-          ": " +
-          result["results"][0]["analyzedInstructions"][0]["steps"][i]["step"]
-          )
-
-
+print(ingredients)
