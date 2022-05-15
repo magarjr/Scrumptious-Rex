@@ -3,6 +3,7 @@ import requests
 import config
 
 testing = False
+BG_COLOR = "#57ADA9"
 
 cuisines = [
     "African",
@@ -62,22 +63,44 @@ intolerances = [
     "Wheat"
 ]
 
+types = [
+    "main course",
+    "side dish",
+    "dessert",
+    "appetizer",
+    "salad",
+    "bread",
+    "breakfast",
+    "soup",
+    "beverage",
+    "sauce",
+    "marinade",
+    "fingerfood",
+    "snack",
+    "drink"
+]
+
 cuisine_frame = [
     # [sg.Text("Search for a recipe by cuisine:", background_color="#57ADA9")],
-    [sg.DropDown(default_value="Select Cuisine", values=cuisines, key="cuisine", size=22)],
+    [sg.DropDown(default_value="Select Cuisine", values=cuisines, key="cuisine", size=22, readonly=True)],
     # [sg.Text("How many recipes do you want to see?")],
     # [sg.DropDown(default_value="", values=[x for x in range(1, 4)])],
     [sg.Button("Get Recipe", key="recipe")]
 ]
 
 diet_frame = [
-    [sg.DropDown(default_value="Select Diet", values=diets, key="diet", size=22)],
+    [sg.DropDown(default_value="Select Diet", values=diets, key="diet", size=22, readonly=True)],
     [sg.Button("Get Recipe", key="diet_recipe")]
 ]
 
 intolerance_frame = [
-    [sg.DropDown(default_value="Select Intolerance", values=intolerances, key="intolerances", size=22)],
+    [sg.DropDown(default_value="Select Intolerance", values=intolerances, key="intolerances", size=22, readonly=True)],
     [sg.Button("Get Recipe", key="int_recipe")]
+]
+
+type_frame = [
+    [sg.DropDown(default_value="Select Type", values=types, key="type", size=22, readonly=True)],
+    [sg.Button("Get Recipe", key="type_recipe")]
 ]
 
 layout = [
@@ -105,6 +128,13 @@ layout = [
               expand_x=True,
               element_justification="center",
               font="Any 14 bold"
+              )],
+    [sg.Frame("Search for a recipe by Type:",
+              type_frame,
+              background_color="#57ADA9",
+              expand_x=True,
+              element_justification="center",
+              font="Any 14 bold"
               )]
 ]
 
@@ -128,12 +158,20 @@ def recipe_window(arg, presses):
             response = requests.get(f'https://api.spoonacular.com/recipes/complexSearch?apiKey={config.API_KEY}'
                                     f'&intolerances={arg}&number=1&addRecipeInformation=true&instructionsRequired=true'
                                     f'&offset={presses}')
+        if arg in types:
+            response = requests.get(f'https://api.spoonacular.com/recipes/complexSearch?apiKey={config.API_KEY}'
+                                    f'&type={arg}&number=1&addRecipeInformation=true&instructionsRequired=true'
+                                    f'&offset={presses}')
 
-    result = response.json()
-    print(result)
+    try:
+        result = response.json()
+        print(result)
+    except UnboundLocalError:
+        sg.popup("You must select an option before proceeding!", no_titlebar=True, background_color=BG_COLOR)
+        main()
 
-    instructions = "Recipe Instructions: \n\n"
-    ingredients = "Ingredients Needed: \n\n"
+    instructions = ""
+    ingredients = ""
 
     if not result["results"][0]["analyzedInstructions"]:
         instructions += "No instructions available for this recipe."
@@ -156,7 +194,9 @@ def recipe_window(arg, presses):
     title = result["results"][0]["title"]
 
     rec_layout = [
+        [sg.Text("Ingredients Needed: ", font="Any 12 bold", background_color=BG_COLOR)],
         [sg.Multiline(ingredients, size=(50, 18), expand_x=True, disabled=True)],
+        [sg.Text("Recipe Instructions: ", font="Any 12 bold", background_color=BG_COLOR)],
         [sg.Multiline(instructions, size=(50, 18), expand_x=True, disabled=True)],
         [sg.Button(f"View another recipe", key="another")]
     ]
@@ -221,6 +261,10 @@ def main():
         if event == "int_recipe":
             int_selected = values["intolerances"]
             recipe_window(int_selected, presses)
+            presses += 1
+        if event == "type_recipe":
+            type_selected = values["type"]
+            recipe_window(type_selected, presses)
             presses += 1
 
     window.close()
