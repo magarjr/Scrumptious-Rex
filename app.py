@@ -1,6 +1,10 @@
 import PySimpleGUI as sg
 import requests
 import config
+import webbrowser
+import time
+import json
+import random
 
 testing = False
 BG_COLOR = "#57ADA9"
@@ -80,6 +84,9 @@ types = [
     "drink"
 ]
 
+websites = dict()
+URL = ""
+
 cuisine_frame = [
     # [sg.Text("Search for a recipe by cuisine:", background_color="#57ADA9")],
     [sg.DropDown(default_value="Select Cuisine", values=cuisines, key="cuisine", size=22, readonly=True)],
@@ -106,7 +113,7 @@ type_frame = [
 layout = [
     # [sg.Text("SCRUMPTIOUS REX", background_color="#57ADA9", justification="center")],
     [sg.Image("logo.png", subsample=5, expand_x=True, background_color="#57ADA9")],
-    [sg.HorizontalSeparator(color="#AD575B")],
+    [sg.HorizontalSeparator(color="#AD575B", pad=10)],
     [sg.Button("About", key="about"), sg.Button("Instructions", key="instructions")],
     [sg.Frame("Search for a recipe by Cuisine:",
               cuisine_frame,
@@ -135,7 +142,10 @@ layout = [
               expand_x=True,
               element_justification="center",
               font="Any 14 bold"
-              )]
+              )],
+    [sg.HorizontalSeparator(color="#AD575B", pad=15)],
+    [sg.Button("Click Here for Website Recommendations", key="get_url")],
+    [sg.Text(URL, enable_events=True, key="URL", background_color=BG_COLOR)],
 ]
 
 # pad (left, right), (top, bottom)
@@ -236,7 +246,26 @@ def open_about_window():
     about_window.close()
 
 
+def process_sites(sites):
+    """Creates a list of the website URLs."""
+    site_list = []
+
+    for i in range(len(sites["Websites"])):
+        # print(sites["Websites"][i]["Name"], sites["Websites"][i][" Url"])
+        site_list.append(sites["Websites"][i][" Url"])
+
+    display_url(site_list)
+
+
+def display_url(lst):
+    global URL
+    rand = random.randrange(0, len(lst) - 1)
+    URL = lst[rand]
+    # return URL
+
+
 def main():
+    global websites
     presses = 0
     # Create an event loop
     while True:
@@ -266,6 +295,21 @@ def main():
             type_selected = values["type"]
             recipe_window(type_selected, presses)
             presses += 1
+        if event == "URL":
+            webbrowser.open(URL)
+        if event == "get_url":
+            # update the signal.txt file
+            file1 = open("Microservice/signal.txt", "r+")
+            file1.write('run\n')
+            file1.close()
+
+            time.sleep(1)
+            with open("Microservice/recipes.json", 'r') as file2:
+                contents = json.loads(file2.read())
+            file2.close()
+
+            process_sites(contents)
+            window["URL"].update(f"{URL}")
 
     window.close()
 
