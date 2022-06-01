@@ -7,7 +7,8 @@ import json
 import random
 
 testing = False
-BG_COLOR = "#57ADA9"
+BG_COLOR = "#7DADBB"    # #57ADA9
+SECONDARY_COLOR = "#BB8B7D"
 
 cuisines = [
     "African",
@@ -112,33 +113,33 @@ type_frame = [
 
 layout = [
     # [sg.Text("SCRUMPTIOUS REX", background_color="#57ADA9", justification="center")],
-    [sg.Image("logo.png", subsample=5, expand_x=True, background_color="#57ADA9")],
+    [sg.Image(source="SRex_med.png", expand_x=True, background_color=BG_COLOR)],
     [sg.HorizontalSeparator(color="#AD575B", pad=10)],
     [sg.Button("About", key="about"), sg.Button("Instructions", key="instructions")],
     [sg.Frame("Search for a recipe by Cuisine:",
               cuisine_frame,
-              background_color="#57ADA9",
+              background_color=BG_COLOR,
               expand_x=True,
               element_justification="center",
               font="Any 14 bold"
               )],
     [sg.Frame("Search for a recipe by Diet:",
               diet_frame,
-              background_color="#57ADA9",
+              background_color=BG_COLOR,
               expand_x=True,
               element_justification="center",
               font="Any 14 bold"
               )],
     [sg.Frame("Search for a recipe by Intolerance:",
               intolerance_frame,
-              background_color="#57ADA9",
+              background_color=BG_COLOR,
               expand_x=True,
               element_justification="center",
               font="Any 14 bold"
               )],
     [sg.Frame("Search for a recipe by Type:",
               type_frame,
-              background_color="#57ADA9",
+              background_color=BG_COLOR,
               expand_x=True,
               element_justification="center",
               font="Any 14 bold"
@@ -151,7 +152,7 @@ layout = [
 # pad (left, right), (top, bottom)
 
 # Create the window
-window = sg.Window("Scrumptious Rex", layout, size=(350, 600), resizable=False, background_color="#57ADA9")
+window = sg.Window("Scrumptious Rex", layout, size=(350, 600), resizable=False, background_color=BG_COLOR)
 
 
 def recipe_window(arg, presses):
@@ -177,7 +178,7 @@ def recipe_window(arg, presses):
         result = response.json()
         print(result)
     except UnboundLocalError:
-        sg.popup("You must select an option before proceeding!", no_titlebar=True, background_color=BG_COLOR)
+        sg.popup("You must select an option before proceeding!", no_titlebar=True, background_color=SECONDARY_COLOR)
         main()
 
     instructions = ""
@@ -192,7 +193,7 @@ def recipe_window(arg, presses):
             instructions += str(result["results"][0]["analyzedInstructions"][0]["steps"][i]["number"])
             instructions += ": "
             instructions += result["results"][0]["analyzedInstructions"][0]["steps"][i]["step"]
-            instructions += "\n"
+            instructions += "\n\n"
 
             # print(instructions)
 
@@ -210,7 +211,7 @@ def recipe_window(arg, presses):
         [sg.Multiline(instructions, size=(50, 18), expand_x=True, disabled=True)],
         [sg.Button(f"View another recipe", key="another")]
     ]
-    rec_window = sg.Window(f"{title}", rec_layout, size=(500, 500), background_color="#57ADA9")
+    rec_window = sg.Window(f"{title}", rec_layout, size=(500, 500), background_color=BG_COLOR)
     while True:
         event, values = rec_window.read()
         if event == "Exit" or event == sg.WIN_CLOSED:
@@ -226,7 +227,7 @@ def recipe_window(arg, presses):
 
 def instructions_window():
     inst_layout = [[sg.Multiline("Bulleted instructions here")]]
-    inst_window = sg.Window("Instructions", inst_layout, size=(400, 300))
+    inst_window = sg.Window("Instructions", inst_layout, size=(400, 300), background_color=SECONDARY_COLOR)
     while True:
         event, values = inst_window.read()
         if event == "Exit" or event == sg.WIN_CLOSED:
@@ -235,9 +236,18 @@ def instructions_window():
     inst_window.close()
 
 
+# about_paragraph = "If you answered YES to any of the above questions, then this App is for you!"
+aq_file = open("about_questions.txt", 'r')
+about_questions = aq_file.read()
+ap_file = open("about.txt", 'r')
+about_paragraph = ap_file.read()
+
+
 def open_about_window():
-    about_layout = [[sg.Text("Some text about the features")]]
-    about_window = sg.Window("About", about_layout, size=(400, 300))
+    about_layout = [[sg.Text(about_questions, background_color=SECONDARY_COLOR, font="Any 12 italic")],
+                    [sg.Text(about_paragraph, background_color=SECONDARY_COLOR, font="Any 12")],
+                    ]
+    about_window = sg.Window("About", about_layout, size=(400, 300), background_color=SECONDARY_COLOR)
     while True:
         event, values = about_window.read()
         if event == "Exit" or event == sg.WIN_CLOSED:
